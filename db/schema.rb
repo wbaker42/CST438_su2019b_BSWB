@@ -12,14 +12,15 @@
 
 ActiveRecord::Schema.define(version: 20190727222531) do
 
-  create_table "customers", force: :cascade do |t|
-    t.string  "email"
-    t.string  "firstName"
-    t.string  "lastName"
-    t.integer "lastOrder"
-    t.integer "lastOrder2"
-    t.integer "lastOrder3"
-    t.integer "award"
+  create_table "orders", force: :cascade do |t|
+    t.integer  "itemId"
+    t.string   "description"
+    t.integer  "customerId"
+    t.integer  "price"
+    t.integer  "total"
+    t.integer  "award"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
 end
