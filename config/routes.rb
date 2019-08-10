@@ -1,10 +1,12 @@
 Rails.application.routes.draw do
     
-    #get('status' => 'status#index')
-    #resources :customers
     post '/orders' => 'orders#create'
-    get '/orders/:id' => 'orders#getOrderById'
+    get '/orders' => 'orders#getOrder'
     
-    #root :to => redirect('/customers')
-    #For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
+    post '/customers' =>'orders#regCustomer'
+    get '/customers' => 'orders#getCustomer'
+    
+    post '/items' => 'orders#createItem'
+    get "/item/:id" => 'orders#getItemById'
+
 end
