@@ -52,7 +52,7 @@ while working
         break;
         
     elsif input=='1'
-        puts "Enter the item itemId for the order"
+        puts "Enter the item Id for the order"
         itemId = gets.chomp!
         
         puts "Enter the customer email"

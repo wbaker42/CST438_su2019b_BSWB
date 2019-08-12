@@ -5,42 +5,50 @@ class OrdersController < ApplicationController
         @order = Order.new
         
         #retrieving the customer information from the customer app
-        code, customer = Customer.getCustomerByEmail(params[:email])
-        
-        if code != 200 #customer doesn't exist
-            render(json: @order, status: 400) #give error message
+        #code, customer = Customer.getCustomerByEmail(params[:email])
+        response = Customer.getCustomerByEmail(params[:email])
+        @customer = JSON.parse response.body
+    
+        #if code != 200 #customer doesn't exist
+        if response.code !=200
+           # render(json: @order, status: 400) #give error message
+            render(json: {messages: 'Customer email you entered does not exist'}, status: 400)
             return #return as customer doesnt exit order can't be created
         end
         
         #retrieving the item information from item  app
-        code, item = Item.getItemById(params[:itemId])
-        
-        if code != 200 #the item doesn't exist
-            render(json: @order, status: 400)
+        #code, item = Item.getItemById(params[:itemId])
+        #@item = Item.getItemById(params[:itemId])
+        response = Item.getItemById(params[:itemId])
+        if response.code != 200 #the item doesn't exist
+            render(json: {messages: 'Item id you entered does not exist'}, status: 400)
+            #render(json: @order, status: 400)
             return
         end
+        @item = JSON.parse response.body
         #checking if the stock qty is 0 the order can't be processed
-        if item['stockQty'] == 0
+        if @item['stockQty'] == 0
             render(json: @order, status: 400)
             return
         end
         #processing and creating the order
-        @order.customerId = customer[0]["id"]
-        @order.award = customer[0]["award"]  
-        @order.description = item['description']
-        @order.itemId = item['id']
-        @order.price = item['price'] 
-        if customer[0]['award']==nil
-            @order.total = item['price']
+        @order.customerId = @customer["id"]
+        @order.award = @customer["award"]  
+        @order.description = @item['description']
+        @order.itemId = @item['id']
+        @order.price = @item['price'] 
+
+        if @customer['award']==nil
+            @order.total = @item['price']
         else
-            @order.total = item['price'] - customer[0]['award']
+            @order.total = @item['price'] - @customer['award']
         end
         if @order.save
             itemHash = Hash.new
-            itemHash ={id: @order.itemId}
+            itemHash = {id: @order.itemId}
             Item.putOrder(itemHash)
             orderHash = Hash.new
-            orderHash = {custId: @order.customerId, total: item['price']}
+            orderHash = {custId: @order.customerId, total: @item['price']}
             Customer.updateCustomerOrder(orderHash)
             render(json: @order, status: 201)
         else
@@ -54,7 +62,8 @@ class OrdersController < ApplicationController
             if params[:id].present?
                 @order=Order.find_by(id: params[:id])
                 if @order.nil?
-                    head 404 #error - not found
+                    render(json: {messages: 'Order for the order Id not found'}, status: 404)
+                    #head 404 #error - not found
                 else
                     render "order.json.jbuilder"
                 end
@@ -62,10 +71,13 @@ class OrdersController < ApplicationController
                 @order = Order.where(:customerId => params[:customerId])
                 #@order is an ActiveRecord::Relation @order.where returns an ActiveRecord::Relation
                 #converting @order to an array of Order objects
-                @order=@order.to_a
-                if @order.nil?
-                    head 404 #error - not found
+               # @order=@order.to_a
+                #if @order.nil?
+                if @order.empty?
+                    #head 404 #error - not found
+                    render(json: {messages: 'Order for customer Id not found'}, status: 404)
                 else
+                    @order=@order.to_a
                     render "abc.json.jbuilder"
                 end 
             elsif params[:email].present?
@@ -76,11 +88,14 @@ class OrdersController < ApplicationController
                 #find the order using the customer Id
                 @order = Order.where(:customerId => id)
                 @order.to_a
-                if @order.nil?
-                    head 404 #error - not found
+                if @order.empty?
+                    #head 404 #error - not found
+                    render(json: {messages: 'Order for customer email not found'}, status: 404)
                 else
                     render "abc.json.jbuilder"
                 end 
+            else
+                 render(json: {messages: 'Order not found'}, status: 404)
             end    
         end
     end
@@ -96,17 +111,22 @@ class OrdersController < ApplicationController
     def getCustomer
         if request.query_string.present? 
             if params[:email].present?
-                @customer = Customer.getCustomerByEmail(params[:email]) #Calling the helper Customer class method
-                if @customer.nil?
-                    head 404 #error - not found
+                response = Customer.getCustomerByEmail(params[:email]) #Calling the helper Customer class method 
+                                                                        #which sends back a response
+                if response.code == 404
+                    #head 404 #error - not found
+                    render(json: {messages: 'Customer email not found'}, status: 404)
                 else
+                    @customer = JSON.parse response.body
                     render(json: @customer, status: 200)
                 end
             elsif params[:id].present?
-                @customer = Customer.getCustomerById(params[:id]) #Calling the helper Customer class method
-                if @customer.nil?
-                    head 404 #error - not found
+                response = Customer.getCustomerById(params[:id]) #Calling the helper Customer class method
+                if response.code == 404
+                    render(json: {messages: 'Customer id not found'}, status: 404)
+                    #head 404 #error - not found
                 else
+                    @customer = JSON.parse response.body
                     render(json: @customer, status: 200)
                 end
             end
@@ -123,21 +143,24 @@ class OrdersController < ApplicationController
         if @item.nil?
             head 404 #error - not found
         else
-            render(json: @item, status: 200)
+            @item = render(json: @item, status: 200)
         end
     end
     
     #get item by Id
     def getItemById
         if params[:id].present?
-            @item = Item.getItemById(params[:id])
-            if @item.nil?
-                head 404 #error - not found
+            response = Item.getItemById(params[:id])
+            if response.code == 404
+                #head 404 #error - not found
+                render(json: {messages: 'Item not found'}, status: 404)
             else
+                @item = JSON.parse response.body
                 render(json: @item, status: 200)
             end
-        else
-            head 404 #error - not found
+        #else
+        #    #head 404 #error - not found
+        #    render(json: {messages: 'Item not found'}, status: 404)
         end
     end
 end
