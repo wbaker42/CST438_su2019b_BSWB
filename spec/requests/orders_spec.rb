@@ -90,7 +90,7 @@ RSpec.describe "Orders", type: :request do
           headers = {"CONTENT_TYPE" => "application/json" ,
                      "ACCEPT" => "application/json"}    
           expect(Customer).to receive(:getCustomerByEmail).with('dw@csumb.edu') do
-            [ 204, {'id' => 1, 'award'=> 0 } ]
+            [ 204, nil ]
           end 
           
           post '/orders', params: order.to_json, headers: headers
@@ -199,7 +199,10 @@ RSpec.describe "Orders", type: :request do
             expect(orderdb['description']).to eq "makeup"
         end
         it "Attempts to access an invalid order ID" do
-            get '/orders?customerId=1234', header: @headers
+            expect(Customer).to receive(:getCustomerByEmail).with('test1234@email.com') do
+                [ 200, {'id' => nil, 'award'=> nil } ]
+            end 
+            get '/orders?email=test1234@email.com', header: @headers
             expect(response).to have_http_status(404)
         end
 #

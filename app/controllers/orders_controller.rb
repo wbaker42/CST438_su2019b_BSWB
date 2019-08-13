@@ -86,6 +86,7 @@ class OrdersController < ApplicationController
                 code, @customer = Customer.getCustomerByEmail(params[:email]) #customer is the response from the method
                                                                     # in customer helper class
                 id=@customer["id"]
+                p id, "This is the customer ID"
                 #find the order using the customer Id
                 @order = Order.where(:customerId => id)
                 @order.to_a
