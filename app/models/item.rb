@@ -9,7 +9,12 @@ class Item
         response = get "/items/#{id}", headers: {"ACCEPT" => "application/json"}
         #return response
         code = response.code
-        item = JSON.parse response.body #, symbolize_names: true
+        p code, "This is the code"
+        if code !=404
+            item = JSON.parse response.body #, symbolize_names: true
+        else
+            item = nil
+        end
         return code, item
     end
     

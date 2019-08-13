@@ -20,9 +20,14 @@ class Customer
       
     def Customer.getCustomerByEmail(email)
         response = get "/customers?email=#{email}"
-        status = response.code
+        code = response.code
+        if code !=404
+            customer = JSON.parse response.body #, symbolize_names: true
+        else
+            customer = nil
+        end
         customer = JSON.parse response.body #, symbolize_names: true
-        return status, customer
+        return code, customer
     end
     
     def Customer.getCustomerById(id)

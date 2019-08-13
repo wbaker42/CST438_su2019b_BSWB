@@ -112,13 +112,12 @@ class OrdersController < ApplicationController
     def getCustomer
         if request.query_string.present? 
             if params[:email].present?
-                response = Customer.getCustomerByEmail(params[:email]) #Calling the helper Customer class method 
+                code, @customer = Customer.getCustomerByEmail(params[:email]) #Calling the helper Customer class method 
                                                                         #which sends back a response
-                if response.code == 404
+                if code == 404
                     #head 404 #error - not found
                     render(json: {messages: 'Customer email not found'}, status: 404)
                 else
-                    @customer = JSON.parse response.body
                     render(json: @customer, status: 200)
                 end
             elsif params[:id].present?
@@ -151,12 +150,12 @@ class OrdersController < ApplicationController
     #get item by Id
     def getItemById
         if params[:id].present?
-            response = Item.getItemById(params[:id])
+            code, @item = Item.getItemById(params[:id])
             if response.code == 404
                 #head 404 #error - not found
-                render(json: {messages: 'Item not found'}, status: 404)
+                render(json: {messages: 'Item not found'}, status: code)
             else
-                @item = JSON.parse response.body
+               
                 render(json: @item, status: 200)
             end
         #else
