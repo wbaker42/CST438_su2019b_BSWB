@@ -7,10 +7,10 @@ class Item
     
     def Item.getItemById(id)
         response = get "/items/#{id}", headers: {"ACCEPT" => "application/json"}
-        return response
-        #status = response.code
-        #item = JSON.parse response.body #, symbolize_names: true
-        #return status, item
+        #return response
+        code = response.code
+        item = JSON.parse response.body #, symbolize_names: true
+        return code, item
     end
     
     def Item.putOrder(order)

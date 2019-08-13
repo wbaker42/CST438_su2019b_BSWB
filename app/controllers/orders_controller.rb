@@ -5,27 +5,28 @@ class OrdersController < ApplicationController
         @order = Order.new
         
         #retrieving the customer information from the customer app
-        #code, customer = Customer.getCustomerByEmail(params[:email])
-        response = Customer.getCustomerByEmail(params[:email])
-        @customer = JSON.parse response.body
-    
+        code, @customer = Customer.getCustomerByEmail(params[:email])
+        #response = Customer.getCustomerByEmail(params[:email])
+        
+        #@customer = JSON.parse response.body
+        #p response, "This was the response"
         #if code != 200 #customer doesn't exist
-        if response.code !=200
+        if code !=200
            # render(json: @order, status: 400) #give error message
             render(json: {messages: 'Customer email you entered does not exist'}, status: 400)
             return #return as customer doesnt exit order can't be created
         end
         
         #retrieving the item information from item  app
-        #code, item = Item.getItemById(params[:itemId])
+        code, @item = Item.getItemById(params[:itemId])
         #@item = Item.getItemById(params[:itemId])
-        response = Item.getItemById(params[:itemId])
-        if response.code != 200 #the item doesn't exist
+        #response = Item.getItemById(params[:itemId])
+        if code != 200 #the item doesn't exist
             render(json: {messages: 'Item id you entered does not exist'}, status: 400)
             #render(json: @order, status: 400)
             return
         end
-        @item = JSON.parse response.body
+        #@item = JSON.parse response.body
         #checking if the stock qty is 0 the order can't be processed
         if @item['stockQty'] == 0
             render(json: @order, status: 400)
@@ -82,7 +83,7 @@ class OrdersController < ApplicationController
                 end 
             elsif params[:email].present?
                 #retrieving the customer information from the customer app
-                @customer = Customer.getCustomerByEmail(params[:email]) #customer is the response from the method
+                code, @customer = Customer.getCustomerByEmail(params[:email]) #customer is the response from the method
                                                                     # in customer helper class
                 id=@customer["id"]
                 #find the order using the customer Id

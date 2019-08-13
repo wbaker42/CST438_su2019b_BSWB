@@ -15,7 +15,6 @@ class Customer
         headers: {"CONTENT_TYPE" => "application/json"}
         return response.code
     end
-    
     def Customer.createCustomer(customer)
         post '/customers', body: customer.to_json, headers: {'Content-Type'=>'application/json', 'ACCEPT'=>'application/json'}
     end
@@ -23,7 +22,9 @@ class Customer
       
     def Customer.getCustomerByEmail(email)
         response = get "/customers?email=#{email}"
-        return response
+        status = response.code
+        customer = JSON.parse response.body #, symbolize_names: true
+        return status, customer
     end
     
     def Customer.getCustomerById(id)
