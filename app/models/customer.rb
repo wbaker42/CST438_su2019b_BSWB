@@ -7,10 +7,8 @@ class Customer
   
  
     def Customer.updateCustomerOrder(order)
-        puts "in customer.rb - customer id is "
-        puts order[:custId]
-        
-        response = put "/customers/update/#{order[:custId]}",
+       # response = put "/customers/update/#{order[:custId]}",
+        response = put "/customers/order",
         body: order.to_json,
         headers: {"CONTENT_TYPE" => "application/json"}
         return response.code
