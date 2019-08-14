@@ -260,12 +260,12 @@ RSpec.describe "Orders", type: :request do
             expect(orderdb['price']).to eq 50.00
             expect(orderdb['description']).to eq "makeup"
         end
-        it "Attempts to access an invalid order ID" do
+        it "Attempts to access an order with an invalid email" do
             expect(Customer).to receive(:getCustomerByEmail).with('test1234@email.com') do
-                [ 200, {'id' => nil, 'award'=> nil } ]
+                [ 400, nil ]
             end 
             get '/orders?email=test1234@email.com', header: @headers
-            expect(response).to have_http_status(404)
+            expect(response).to have_http_status(400)
         end
 
     end
