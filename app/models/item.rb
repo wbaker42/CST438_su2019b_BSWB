@@ -7,11 +7,9 @@ class Item
     
     def Item.getItemById(id)
         response = get "/items/#{id}", headers: {"ACCEPT" => "application/json"}
-        #return response
         code = response.code
-        p code, "This is the code"
         if code !=404
-            item = JSON.parse response.body #, symbolize_names: true
+            item = JSON.parse response.body
         else
             item = nil
         end

@@ -7,7 +7,6 @@ class Customer
   
  
     def Customer.updateCustomerOrder(order)
-       # response = put "/customers/update/#{order[:custId]}",
         response = put "/customers/order",
         body: order.to_json,
         headers: {"CONTENT_TYPE" => "application/json"}
@@ -22,19 +21,17 @@ class Customer
         response = get "/customers?email=#{email}"
         code = response.code
         if code !=404
-            customer = JSON.parse response.body #, symbolize_names: true
+            customer = JSON.parse response.body
         else
             customer = nil
         end
-        customer = JSON.parse response.body #, symbolize_names: true
+        customer = JSON.parse response.body 
         return code, customer
     end
     
     def Customer.getCustomerById(id)
        response = get "/customers?id=#{id}" 
-       #status = response.code
-       # customer = JSON.parse response.body #, symbolize_names: true
-        return response #customer#status, customer
+        return response 
     end
 
 end

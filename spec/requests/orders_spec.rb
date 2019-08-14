@@ -82,7 +82,57 @@ RSpec.describe "Orders", type: :request do
             
           #order_json = JSON.parse(response)
         end
-        
+        it "customer makes purchase and an award is applied to total" do
+            order = { itemId: 100, 
+                    email: 'dw@csumb.edu' } 
+            
+            headers = {"CONTENT_TYPE" => "application/json" ,
+                     "ACCEPT" => "application/json"}    
+                     
+            expect(Customer).to receive(:getCustomerByEmail).with('dw@csumb.edu') do
+            [ 200, {'id' => 1, 'award'=> 100 } ]
+            end 
+            
+            expect(Item).to receive(:getItemById).with(100) do
+            [ 200, { 'id'=>100, 'description'=>'jewelry item',
+                          'price'=> 175.00, 'stockQty'=> 2 } ]
+            end 
+            
+            allow(Customer).to receive(:updateCustomerOrder) do |order|
+            expect(order[:custId]).to eq 1 
+            201
+            end 
+            
+            allow(Item).to receive(:putOrder) do |order|
+            expect(order[:id]).to eq 100
+            201
+            end 
+            p order.to_json
+            
+            post '/orders', params: order.to_json, headers: headers
+            
+            expect(response).to have_http_status(201)
+            order = JSON.parse(response.body)
+            expect(order.keys).to contain_exactly(
+                'id',
+                'itemId',
+                'description',
+                'customerId',
+                'price',
+                'award',
+                'total',
+                'created_at',
+                'updated_at'
+                )
+            orderdb = Order.find(order['id'])
+            expect(orderdb['itemId']).to eq 100
+            expect(orderdb['customerId']).to eq 1
+            expect(orderdb['price']).to eq 175.00
+            expect(orderdb['total']).to eq 75.00
+            expect(orderdb['description']).to eq "jewelry item"
+            
+          #order_json = JSON.parse(response)
+        end        
         it "Invalid customer attempts to make a purchase" do
           order = { itemId: 100, 
                     email: 'dw@csumb.edu' } 
@@ -110,6 +160,24 @@ RSpec.describe "Orders", type: :request do
           expect(Item).to receive(:getItemById).with(100) do
             [ 204, { 'id'=>100, 'description'=>'jewelry item',
                           'price'=> 175.00, 'stockQty'=> 2 } ]
+          end 
+          post '/orders', params: order.to_json, headers: headers
+          
+          expect(response).to have_http_status(400)        
+        end
+        it "Valid customer attempts to purchase an out of stock item" do
+          order = { itemId: 100, 
+                    email: 'dw@csumb.edu' } 
+                    
+          headers = {"CONTENT_TYPE" => "application/json" ,
+                     "ACCEPT" => "application/json"}    
+          expect(Customer).to receive(:getCustomerByEmail).with('dw@csumb.edu') do
+            [ 200, {'id' => 1, 'award'=> 0 } ]
+          end 
+          
+          expect(Item).to receive(:getItemById).with(100) do
+            [ 200, { 'id'=>100, 'description'=>'jewelry item',
+                          'price'=> 175.00, 'stockQty'=> 0 } ]
           end 
           post '/orders', params: order.to_json, headers: headers
           
